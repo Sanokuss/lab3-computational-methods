@@ -1,5 +1,16 @@
+import os
+
 # Модель: Метод Ньютона (5 семестр)
 # Автор: Боденчук Олександр, група АІ-235
+
+# Зчитуємо змінні середовища з Docker
+student_name = os.getenv("STUDENT_NAME", "Невідомий")
+group = os.getenv("GROUP", "Невідома")
+mode = os.getenv("MODE", "default")
+
+print(f"--- Запуск у контейнері ---")
+print(f"Студент: {student_name}, Група: {group}, Режим (Варіант): {mode}")
+print(f"---------------------------\n")
 
 def newton_method(f, df, x0, tol=1e-5, max_iter=100):
     x = x0
@@ -22,7 +33,6 @@ def newton_method(f, df, x0, tol=1e-5, max_iter=100):
     print("Перевищено ліміт ітерацій")
     return x
 
-# Приклад використання для рівняння x^2 - 4 = 0
 if __name__ == "__main__":
     f = lambda x: x**2 - 4
     df = lambda x: 2*x
