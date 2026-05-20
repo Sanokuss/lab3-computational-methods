@@ -1,39 +1,50 @@
-import os
-
 # Модель: Метод Ньютона (5 семестр)
-# Автор: Боденчук Олександр, група АІ-235
+# Автор: Боденчук Олександр Сергійович, група АІ-235
 
-# Зчитуємо змінні середовища з Docker
-student_name = os.getenv("STUDENT_NAME", "Невідомий")
-group = os.getenv("GROUP", "Невідома")
-mode = os.getenv("MODE", "default")
+from flask import Flask, request, jsonify
 
-print(f"--- Запуск у контейнері ---")
-print(f"Студент: {student_name}, Група: {group}, Режим (Варіант): {mode}")
-print(f"---------------------------\n")
+app = Flask(__name__)
 
-def newton_method(f, df, x0, tol=1e-5, max_iter=100):
+# Функція Методу Ньютона для розв'язання x^2 - 4 = 0
+def newton_method_solve(x0, tol=1e-5, max_iter=100):
+    f = lambda x: x**2 - 4
+    df = lambda x: 2*x
     x = x0
     for i in range(max_iter):
         fx = f(x)
         dfx = df(x)
-        
         if dfx == 0:
-            print("Похідна дорівнює нулю. Зупинка.")
-            return None
-            
+            return None, "Похідна дорівнює нулю."
         x_new = x - fx / dfx
-        
         if abs(x_new - x) < tol:
-            print(f"Знайдено корінь: {x_new} за {i+1} ітерацій")
-            return x_new
-            
+            return x_new, i + 1
         x = x_new
-        
-    print("Перевищено ліміт ітерацій")
-    return x
+    return x, max_iter
 
-if __name__ == "__main__":
-    f = lambda x: x**2 - 4
-    df = lambda x: 2*x
-    newton_method(f, df, x0=3.0)
+@app.route('/calculate', methods=['POST'])
+def calculate():
+    # Отримуємо дані у форматі JSON
+    data = request.get_json()
+    
+    if not data or 'x' not in data:
+        return jsonify({"error": "Передайте параметр 'x' у JSON тілі запиту"}), 400
+    
+    try:
+        x0 = float(data['x'])
+    except (ValueError, TypeError):
+        return jsonify({"error": "Параметр 'x' має бути числом"}), 400
+    
+    root, iterations = newton_method_solve(x0)
+    
+    if root is None:
+        return jsonify({"error": iterations}), 400
+        
+    return jsonify({
+        "input_x0": x0,
+        "result_root": root,
+        "iterations": iterations,
+        "status": "success"
+    })
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
