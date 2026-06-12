@@ -19,16 +19,23 @@ def newton_method_solve(x0, tol=1e-5, max_iter=100):
         x = x_new
     return x, max_iter
 
-@app.route('/calculate', methods=['POST'])
+# Додано підтримку GET-запитів для сумісності з методичкою
+@app.route('/calculate', methods=['GET', 'POST'])
 def calculate():
-    # Отримуємо дані у форматі JSON
-    data = request.get_json()
+    x_val = None
     
-    if not data or 'x' not in data:
-        return jsonify({"error": "Передайте параметр 'x' у JSON тілі запиту"}), 400
+    if request.method == 'GET':
+        x_val = request.args.get('x')
+    elif request.method == 'POST':
+        data = request.get_json()
+        if data:
+            x_val = data.get('x')
+            
+    if x_val is None:
+        return jsonify({"error": "Передайте параметр 'x' (наприклад: /calculate?x=5)"}), 400
     
     try:
-        x0 = float(data['x'])
+        x0 = float(x_val)
     except (ValueError, TypeError):
         return jsonify({"error": "Параметр 'x' має бути числом"}), 400
     
@@ -45,7 +52,5 @@ def calculate():
     })
 
 if __name__ == "__main__":
-    # Отримуємо порт із змінних середовища (динамічно для Render)
     port = int(os.environ.get("PORT", 10000))
-    # Вимикаємо debug mode для безпеки (вимога ЛР7)
     app.run(host='0.0.0.0', port=port, debug=False)
