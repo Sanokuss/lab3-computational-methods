@@ -1,6 +1,4 @@
-# Модель: Метод Ньютона (5 семестр)
-# Автор: Боденчук Олександр Сергійович, група АІ-235
-
+import os
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
@@ -46,5 +44,8 @@ def calculate():
         "status": "success"
     })
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    # Отримуємо порт із змінних середовища (динамічно для Render)
+    port = int(os.environ.get("PORT", 10000))
+    # Вимикаємо debug mode для безпеки (вимога ЛР7)
+    app.run(host='0.0.0.0', port=port, debug=False)
